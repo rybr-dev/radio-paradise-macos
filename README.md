@@ -1,3 +1,5 @@
+<img width="128" height="128" alt="icon_128x128" src="https://github.com/user-attachments/assets/85f958aa-34be-408d-a122-d92ff0354588" />
+
 # Radio Paradise for macOS
 
 ![Radio Paradise Menu Bar App](https://img.shields.io/badge/macOS-14.0+-blue) ![Swift](https://img.shields.io/badge/Swift-5.0-orange) ![License](https://img.shields.io/badge/License-GPTv3-green)
@@ -69,7 +71,7 @@ This app is an ode to [Radio Paradise](https://radioparadise.com). Thank you for
 
 ## Support
 
-Please, support independent radio and the ongoing work of Radio Paradise [https://radioparadise.com/support](https://radioparadise.com/support).
+Please support independent radio and the ongoing work of Radio Paradise at [https://radioparadise.com/support](https://radioparadise.com/support).
 
 If you encounter any issues or have feature requests with this app, please [open an issue](../../issues) on GitHub. 
 
