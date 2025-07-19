@@ -1,0 +1,76 @@
+# Radio Paradise for macOS
+
+![Radio Paradise Menu Bar App](https://img.shields.io/badge/macOS-14.0+-blue) ![Swift](https://img.shields.io/badge/Swift-5.0-orange) ![License](https://img.shields.io/badge/License-GPTv3-green)
+
+A native macOS menu bar app for streaming [Radio Paradise](https://radioparadise.com), commercial-free listener-supported Internet radio curated by real human beings.
+
+This app is not affiliated with or endorsed by Radio Paradise, and is created with love and respect by the Radio Paradise fans at [rybr.dev](https://rybr.dev). Please support Radio Paradise at [https://radioparadise.com/support](https://radioparadise.com/support).
+
+## Features
+
+- **Streaming music**: Stream the 320kbps AAC stream of Radio Paradise's Main Mix
+- **Menu bar interface**: An unobtrusive menu bar player with now playing info and other helpful utilities
+- **Album artwork**: Shows the album art of the currently playing song. Hover to view the high-res version.
+- **Apple Music integration**: Add songs to a special Apple Music playlist
+- **Song sharing**: Share songs you love with friends via links to Radio Paradise
+- **macOS media controls**: Supports play/pause from keyboard media keys and the Now Playing view
+
+## Requirements
+
+- macOS 14.0 (Sonoma) or later
+- Xcode 15.0 or later (for building)
+
+## Installation
+
+### Option 1: Download Release (Coming Soon)
+Pre-built releases will be available on the [Releases page](../../releases).
+
+### Option 2: Build from Source
+
+1. Clone this repository
+
+2. Open in Xcode
+   ```bash
+   open RP.xcodeproj
+   ```
+
+3. **Configure signing:**
+   - Select the "RP" target in Xcode
+   - Go to "Signing & Capabilities"
+   - Select your Apple Developer Team
+   - Update the Bundle Identifier to use your own domain
+
+4. **Build and run:**
+   - Press `Cmd+R` or click the Run button in Xcode
+
+## Architecture
+
+Written fully in Swift. Core classes:
+
+- **`RadioPlayer`**: Handles audio streaming and now playing data
+- **`StatusMenuController`**: Manages the menu bar interface
+- **`MusicService`**: Apple Music API integration and song/playlist management
+- **`NotificationService`**: System notifications
+
+## Dependencies
+with special thanks to their owners and contributors.
+
+- [AudioStreaming](https://github.com/dimitris-c/AudioStreaming) - Audio streaming engine
+- [MusadoraKit](https://github.com/rryam/MusadoraKit) - Apple Music API wrapper
+- [LRUCache](https://github.com/nicklockwood/LRUCache) - Song data caching
+
+## License
+
+This project is licensed under the GPLv3 License - see the [LICENSE](LICENSE) file for details.
+
+## Special Thanks
+
+This app is an ode to [Radio Paradise](https://radioparadise.com). Thank you for decades of incredible music.
+
+## Support
+
+Please, support independent radio and the ongoing work of Radio Paradise [https://radioparadise.com/support](https://radioparadise.com/support).
+
+If you encounter any issues or have feature requests with this app, please [open an issue](../../issues) on GitHub. 
+
+If you'd like to donate to the ongoing development of this app, you can [buy us a coffee](https://buymeacoffee.com/rybr.dev). You're also welcome to submit contributions via PR.

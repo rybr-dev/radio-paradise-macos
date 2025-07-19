@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="23727" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="23727"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="AboutWindow" customModule="Radio_Paradise" customModuleProvider="target">
+            <connections>
+                <outlet property="creditsTextView" destination="TextView-8VH" id="I6W-2x-0OL"/>
+                <outlet property="supportRadioParadiseButton" destination="iPo-Ty-B6e" id="supportButtonOutlet"/>
+                <outlet property="window" destination="QvC-M9-y7g" id="gIp-Ho-8D9"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <window title="About Radio Paradise" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="QvC-M9-y7g" customClass="OverlayWindow" customModule="Radio_Paradise" customModuleProvider="target">
+            <windowStyleMask key="styleMask" titled="YES" closable="YES"/>
+            <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+            <rect key="contentRect" x="196" y="240" width="416" height="333"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1728" height="1079"/>
+            <view key="contentView" wantsLayer="YES" id="EiT-Mj-1SG">
+                <rect key="frame" x="0.0" y="0.0" width="416" height="333"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="YIl-03-BlH">
+                        <rect key="frame" x="166" y="228" width="85" height="85"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyUpOrDown" image="AppIcon" id="Cel-3e-BHc"/>
+                    </imageView>
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="NDO-hI-Iqb">
+                        <rect key="frame" x="127" y="182" width="174" height="28"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <textFieldCell key="cell" lineBreakMode="clipping" alignment="center" title="Radio Paradise" id="5cg-6a-bTe">
+                            <font key="font" metaFont="systemBold" size="24"/>
+                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <textField verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Hs6-Ys-5cD">
+                        <rect key="frame" x="63" y="136" width="304" height="38"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <textFieldCell key="cell" alignment="center" title="Commercial-free, listener-supported radio curated by real human beings." id="7cg-6a-bTe">
+                            <font key="font" metaFont="system"/>
+                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <scrollView focusRingType="none" fixedFrame="YES" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8VH-vw-eNm">
+                        <rect key="frame" x="21" y="20" width="374" height="33"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <clipView key="contentView" drawsBackground="NO" id="ClipView-8VH">
+                            <rect key="frame" x="0.0" y="0.0" width="374" height="33"/>
+                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                            <subviews>
+                                <textView focusRingType="none" importsGraphics="NO" verticallyResizable="YES" usesFontPanel="YES" findStyle="panel" continuousSpellChecking="YES" allowsUndo="YES" usesRuler="YES" allowsNonContiguousLayout="YES" quoteSubstitution="YES" dashSubstitution="YES" spellingCorrection="YES" smartInsertDelete="YES" id="TextView-8VH" customClass="LinkTrackingTextView" customModule="Radio_Paradise" customModuleProvider="target">
+                                    <rect key="frame" x="0.0" y="0.0" width="374" height="33"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                    <size key="minSize" width="374" height="33"/>
+                                    <size key="maxSize" width="374" height="10000000"/>
+                                    <attributedString key="textStorage">
+                                        <fragment content="Version 1.0. Built with ">
+                                            <attributes>
+                                                <color key="NSColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
+                                                <font key="NSFont" metaFont="smallSystem"/>
+                                                <paragraphStyle key="NSParagraphStyle" alignment="center" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
+                                            </attributes>
+                                        </fragment>
+                                        <fragment content="❤️">
+                                            <attributes>
+                                                <color key="NSColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
+                                                <font key="NSFont" size="11" name=".AppleColorEmojiUI"/>
+                                                <font key="NSOriginalFont" metaFont="smallSystem"/>
+                                                <paragraphStyle key="NSParagraphStyle" alignment="center" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
+                                            </attributes>
+                                        </fragment>
+                                        <fragment content=" by the Radio Paradise fans at rybr.dev. You can support development of this app by buying us a coffee!">
+                                            <attributes>
+                                                <color key="NSColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
+                                                <font key="NSFont" metaFont="smallSystem"/>
+                                                <paragraphStyle key="NSParagraphStyle" alignment="center" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
+                                            </attributes>
+                                        </fragment>
+                                    </attributedString>
+                                    <color key="insertionPointColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                </textView>
+                            </subviews>
+                        </clipView>
+                        <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="HorizontalScroller-8VH">
+                            <rect key="frame" x="0.0" y="119" width="374" height="16"/>
+                            <autoresizingMask key="autoresizingMask"/>
+                        </scroller>
+                        <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" horizontalHuggingPriority="750" horizontal="NO" id="VerticalScroller-8VH">
+                            <rect key="frame" x="358" y="0.0" width="16" height="33"/>
+                            <autoresizingMask key="autoresizingMask"/>
+                        </scroller>
+                    </scrollView>
+                    <textField verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="CBg-Hp-2cK">
+                        <rect key="frame" x="49" y="100" width="318" height="28"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <textFieldCell key="cell" alignment="center" id="QZX-Lt-oda">
+                            <font key="font" metaFont="smallSystem"/>
+                            <string key="title">This app is unofficial and not published by Radio Paradise.
+Please be awesome and click here to support great music!</string>
+                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="iPo-Ty-B6e">
+                        <rect key="frame" x="118" y="59" width="180" height="32"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <buttonCell key="cell" type="push" title="Support Radio Paradise" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="ExZ-Iq-cgu">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="systemMedium" size="13"/>
+                        </buttonCell>
+                        <connections>
+                            <action selector="supportRadioParadiseButtonClicked:" target="-2" id="supportButtonAction"/>
+                        </connections>
+                    </button>
+                </subviews>
+            </view>
+            <connections>
+                <outlet property="delegate" destination="-2" id="0gA-uL-Ygk"/>
+            </connections>
+            <point key="canvasLocation" x="140" y="170.5"/>
+        </window>
+    </objects>
+    <resources>
+        <image name="AppIcon" width="1024" height="1024"/>
+    </resources>
+</document>

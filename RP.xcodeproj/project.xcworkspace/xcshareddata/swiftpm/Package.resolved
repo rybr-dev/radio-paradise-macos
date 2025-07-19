@@ -1,0 +1,33 @@
+{
+  "originHash" : "32fd2ab1c3f4765ad5e260405cbaf7aec76902bc45f65da2695c17f16ac85f0c",
+  "pins" : [
+    {
+      "identity" : "audiostreaming",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/dimitris-c/AudioStreaming.git",
+      "state" : {
+        "revision" : "2f3c7912e8203fb0dac33872fb44c02df41b3e1f",
+        "version" : "1.2.7"
+      }
+    },
+    {
+      "identity" : "lrucache",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/nicklockwood/LRUCache.git",
+      "state" : {
+        "revision" : "542f0449556327415409ededc9c43a4bd0a397dc",
+        "version" : "1.0.7"
+      }
+    },
+    {
+      "identity" : "musadorakit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/rryam/MusadoraKit",
+      "state" : {
+        "revision" : "402a2b9fdf0d507fdfdbb7e1d1efa95b52710142",
+        "version" : "6.2.0"
+      }
+    }
+  ],
+  "version" : 3
+}
