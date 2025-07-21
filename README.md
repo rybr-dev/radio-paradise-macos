@@ -8,6 +8,10 @@ A native macOS menu bar app for streaming [Radio Paradise](https://radioparadise
 
 This app is not affiliated with or endorsed by Radio Paradise, and is created with love and respect by the Radio Paradise fans at [rybr.dev](https://rybr.dev). Please support Radio Paradise at [https://radioparadise.com/support](https://radioparadise.com/support).
 
+## Pretty picture
+
+<img width="1000" height="622" alt="2" src="https://github.com/user-attachments/assets/8fa2556b-a199-4226-bda9-a67f56d37538" />
+
 ## Features
 
 - **Streaming music**: Stream the 320kbps AAC stream of Radio Paradise's Main Mix
