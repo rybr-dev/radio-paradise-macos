@@ -32,12 +32,11 @@ This app is not affiliated with or endorsed by Radio Paradise, and is created wi
 - macOS 14.0 (Sonoma) or later
 - Xcode 15.0 or later (for building)
 
-## Installation
+## Contribute
 
-### Option 1: Download Release (Coming Soon)
-Pre-built releases will be available on the [Releases page](../../releases).
+Contributions to the project are welcome. Make changes on a fork and submit a PR to this repo.
 
-### Option 2: Build from Source
+### Building from Source
 
 1. Clone this repository
 
