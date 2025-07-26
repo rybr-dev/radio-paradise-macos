@@ -90,4 +90,4 @@ Please support independent radio and the ongoing work of Radio Paradise at [http
 
 If you encounter any issues or have feature requests with this app, please [open an issue](../../issues) on GitHub. 
 
-If you'd like to donate to the ongoing development of this app, you can [buy us a coffee](https://buymeacoffee.com/rybr.dev). You're also welcome to submit contributions via PR.
+If you'd like to donate to the ongoing development of this app, you can [buy us a coffee](https://buymeacoffee.com/rybr.dev) or [sponsor us via GitHub](https://github.com/sponsors/rybr-dev). You're also welcome to submit contributions via PR.
