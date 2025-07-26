@@ -12,7 +12,7 @@ This app is not affiliated with or endorsed by Radio Paradise, and is created wi
 
 ## Download
 
-[Download the latest release](https://github.com/rybr-dev/radio-paradise-macos/releases/download/1.0/RP-1.0.dmg). Open the DMG file and drag the app to your Applications folder, then run!
+[Download the latest release](https://github.com/rybr-dev/radio-paradise-macos/releases/download/1.0/RP-1.0.zip). Open the `.zip` file and drag the revealed **Radio Paradise** app to your Applications folder, then launch it and enjoy the music!
 
 ## Pretty picture
 
