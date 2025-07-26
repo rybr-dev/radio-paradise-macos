@@ -6,7 +6,13 @@
 
 A native macOS menu bar app for streaming [Radio Paradise](https://radioparadise.com), commercial-free listener-supported Internet radio curated by real human beings.
 
+Supported on macOS 10.14 (Mojave) and higher.
+
 This app is not affiliated with or endorsed by Radio Paradise, and is created with love and respect by the Radio Paradise fans at [rybr.dev](https://rybr.dev). Please support Radio Paradise at [https://radioparadise.com/support](https://radioparadise.com/support).
+
+## Download
+
+[Download the latest release](https://github.com/rybr-dev/radio-paradise-macos/releases/download/1.0/RP-1.0.dmg). Open the DMG file and drag the app to your Applications folder, then run!
 
 ## Pretty picture
 
