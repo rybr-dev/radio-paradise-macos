@@ -8,7 +8,7 @@ A native macOS menu bar app for streaming [Radio Paradise](https://radioparadise
 
 Supported on macOS 10.14 (Mojave) and higher.
 
-This app is not affiliated with or endorsed by Radio Paradise, and is created with love and respect by the Radio Paradise fans at [rybr.dev](https://rybr.dev). Please support Radio Paradise at [https://radioparadise.com/support](https://radioparadise.com/support).
+This app is not published or supported by Radio Paradise, and is created with permission (and love and respect) by the RP fans at [rybr.dev](https://rybr.dev). Please support Radio Paradise at [https://radioparadise.com/support](https://radioparadise.com/support).
 
 ## Download
 
