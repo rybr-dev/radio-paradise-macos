@@ -86,6 +86,23 @@ class StatusMenuController: NSObject {
         nowPlayingItem.target = self
         createNowPlayingView(for: nowPlayingItem)
         menu.addItem(nowPlayingItem)
+        
+        menu.addItem(NSMenuItem.separator())
+
+        // Channel selection submenu
+        let channelMenuItem = NSMenuItem(title: "Channel", action: nil, keyEquivalent: "")
+        let channelSubmenu = NSMenu()
+
+        for (index, channel) in CHANNEL_DATA.enumerated() {
+            let channelItem = NSMenuItem(title: channel.title, action: #selector(selectChannel(_:)), keyEquivalent: "")
+            channelItem.target = self
+            channelItem.tag = index
+            channelItem.state = (index == getCurrentChannelIndex()) ? .on : .off
+            channelSubmenu.addItem(channelItem)
+        }
+
+        channelMenuItem.submenu = channelSubmenu
+        menu.addItem(channelMenuItem)
 
         // Separator
         menu.addItem(NSMenuItem.separator())
@@ -219,6 +236,41 @@ class StatusMenuController: NSObject {
             aboutWindow = AboutWindow()
         }
         aboutWindow?.show()
+    }
+
+    @objc private func selectChannel(_ sender: NSMenuItem) {
+        let selectedIndex = sender.tag
+
+        // Update the selected channel
+        setCurrentChannel(index: selectedIndex)
+
+        // Update the menu checkmarks
+        updateChannelMenuStates()
+
+        // Switch to the new channel
+        RadioPlayer.shared.switchChannel()
+
+        // Show notification
+        let channel = CHANNEL_DATA[selectedIndex]
+        NotificationService.shared.showNotification(
+            title: "Channel Changed",
+            body: "Now playing \(channel.title)"
+        )
+    }
+
+    private func updateChannelMenuStates() {
+        guard let menu = statusItem.menu else { return }
+
+        // Find the channel submenu
+        for item in menu.items {
+            if item.title == "Channel", let submenu = item.submenu {
+                let currentIndex = getCurrentChannelIndex()
+                for (index, subItem) in submenu.items.enumerated() {
+                    subItem.state = (index == currentIndex) ? .on : .off
+                }
+                break
+            }
+        }
     }
 
     func updatePlayPauseButton(isPlaying: Bool) {

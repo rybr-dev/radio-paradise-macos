@@ -3,9 +3,6 @@ import AudioStreaming
 import MediaPlayer
 import Cocoa
 
-let RP_STREAM_URL = URL(string: "http://stream.radioparadise.com/aac-320")!
-let RP_API_URL = URL(string: "https://api.radioparadise.com/api/nowplaying_list_v2022?mode=wip-channel&chan=0")!
-
 class RadioPlayer: NSObject, AudioPlayerDelegate {
     static let shared = RadioPlayer()
 
@@ -42,6 +39,22 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
     func stop() {
         timer?.invalidate()
         player?.stop()
+    }
+
+    func switchChannel() {
+        let wasPlaying = isPlaying
+
+        // Stop current playback
+        timer?.invalidate()
+        player?.stop()
+
+        // Only restart if we were playing before
+        if wasPlaying {
+            // Wait a moment for the stop to complete, then start with new channel
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.play()
+            }
+        }
     }
 
     var isPlaying: Bool {
