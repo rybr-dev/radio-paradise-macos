@@ -1,7 +1,8 @@
 import Foundation
 
 // URL format constants
-let RP_API_URL_FORMAT = "https://api.radioparadise.com/api/nowplaying_list_v2022&chan=%ld&list_num=4"
+let bundleIdentifier = Bundle.main.bundleIdentifier ?? "dev.rybr.radioparadise"
+let RP_API_URL_FORMAT = "https://api.radioparadise.com/api/nowplaying_list_v2022?chan=%ld&list_num=4&player_id=\(bundleIdentifier)"
 let RP_STREAM_URL_FORMAT = "http://stream.radioparadise.com/%@"
 
 // Channel structure
@@ -100,18 +101,11 @@ func getCurrentChannelIndex() -> Int {
 }
 
 // Current API URL and Stream URL based on selected channel
-var RP_API_URL: URL {
+var currentChannelInfoURL: URL {
     return getCurrentChannel().apiURL
 }
 
-var RP_STREAM_URL: URL {
+var currentStreamURL: URL {
     return getCurrentChannel().streamURL
 }
 
-//
-// Get URL for channel (legacy function)
-//
-
-func getChannelURL(forChannel channel: Channel) -> URL? {
-    return channel.apiURL
-}

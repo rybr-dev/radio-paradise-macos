@@ -28,7 +28,7 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
     }
 
     func play() {
-        player?.play(url: RP_STREAM_URL)
+        player?.play(url: currentStreamURL)
         updateNowPlaying()
     }
 
@@ -121,7 +121,7 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
     }
 
     func updateNowPlaying() {
-        let task = URLSession.shared.dataTask(with: RP_API_URL) {
+        let task = URLSession.shared.dataTask(with: currentChannelInfoURL) {
             [weak self] data,
             response,
             error in
