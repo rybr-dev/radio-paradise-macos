@@ -5,6 +5,7 @@ import LRUCache
 
 let APPLE_MUSIC_PLAYLIST_NAME = "Radio Paradise Favorites"
 
+@available(macOS 14.0, *)
 class MusicService {
     static let shared = MusicService()
 

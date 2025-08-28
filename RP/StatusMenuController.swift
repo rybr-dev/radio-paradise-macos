@@ -86,6 +86,7 @@ class StatusMenuController: NSObject {
         nowPlayingItem.target = self
         createNowPlayingView(for: nowPlayingItem)
         menu.addItem(nowPlayingItem)
+        self.nowPlayingMenuItem = nowPlayingItem
         
         menu.addItem(NSMenuItem.separator())
 
@@ -113,13 +114,17 @@ class StatusMenuController: NSObject {
         viewOnRadioParadiseItem.isEnabled = false
         viewOnRadioParadiseItem.target = self
         menu.addItem(viewOnRadioParadiseItem)
+        self.viewOnRadioParadiseMenuItem = viewOnRadioParadiseItem
 
         // Add to Apple Music playlist item
-        let addToPlaylistItem = NSMenuItem(title: "Add to Apple Music Playlist", action: #selector(addToPlaylist), keyEquivalent: "")
-        // Initially disable the Add to Playlist item until we have a song
-        addToPlaylistItem.isEnabled = false
-        addToPlaylistItem.target = self
-        menu.addItem(addToPlaylistItem)
+        if #available(macOS 14.0, *) {
+            let addToPlaylistItem = NSMenuItem(title: "Add to Apple Music Playlist", action: #selector(addToPlaylist), keyEquivalent: "")
+            // Initially disable the Add to Playlist item until we have a song
+            addToPlaylistItem.isEnabled = false
+            addToPlaylistItem.target = self
+            menu.addItem(addToPlaylistItem)
+            self.addToPlaylistMenuItem = addToPlaylistItem
+        }
 
         // Share song item
         let shareSongItem = NSMenuItem(title: "Share...", action: #selector(shareSong), keyEquivalent: "")
@@ -127,6 +132,7 @@ class StatusMenuController: NSObject {
         shareSongItem.isEnabled = false
         shareSongItem.target = self
         menu.addItem(shareSongItem)
+        self.shareSongMenuItem = shareSongItem
 
         menu.addItem(NSMenuItem.separator())
 
@@ -138,18 +144,13 @@ class StatusMenuController: NSObject {
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         
         statusItem.menu = menu
-        
-        // Store references to menu items
-        self.nowPlayingMenuItem = nowPlayingItem
-        self.addToPlaylistMenuItem = addToPlaylistItem
-        self.shareSongMenuItem = shareSongItem
-        self.viewOnRadioParadiseMenuItem = viewOnRadioParadiseItem
     }
 
     @objc private func togglePlayPause() {
         RadioPlayer.shared.togglePlayPause()
     }
     
+    @available(macOS 14.0, *)
     @objc private func addToPlaylist() {
         let songInfo = RadioPlayer.shared.currentSongInfo
         guard !songInfo.title.isEmpty && !songInfo.artist.isEmpty else {
@@ -311,12 +312,17 @@ class StatusMenuController: NSObject {
         updateAlbumArt()
 
         // Trigger preloading if this is a song
-        if isSong {
-            let songInfo = RadioPlayer.shared.currentSongInfo
-            MusicService.shared.preloadSong(title: songInfo.title, artist: songInfo.artist)
+        if #available(macOS 14.0, *) {
+            if isSong {
+                let songInfo = RadioPlayer.shared.currentSongInfo
+                MusicService.shared.preloadSong(title: songInfo.title, artist: songInfo.artist)
+            } else {
+                updateSongPreloadStatus(isReady: false)
+            }
         } else {
-            updateSongPreloadStatus(isReady: false)
+            updateSongPreloadStatus(isReady: true)
         }
+
     }
 
     func updateSongPreloadStatus(isReady: Bool) {
