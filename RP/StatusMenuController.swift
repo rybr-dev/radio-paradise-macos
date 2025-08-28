@@ -291,12 +291,13 @@ class StatusMenuController: NSObject {
         }
     }
     
-    func updateNowPlaying(isPaused: Bool) {
+    func updateNowPlaying() {
+        let isPlaying = RadioPlayer.shared.isPlaying
         let songInfo = RadioPlayer.shared.currentSongInfo()
         let songText = "\(songInfo.artist) - \(songInfo.title)"
 
         // Update the custom view with song information
-        let displayText = isPaused ? "\(songText) (Paused)" : songText
+        let displayText = !isPlaying ? "\(songText) (Paused)" : songText
         songInfoLabel?.stringValue = displayText
 
         // Initially disable Apple Music features until preloading completes
@@ -313,7 +314,6 @@ class StatusMenuController: NSObject {
         if !songInfo.songId.isEmpty {
             shareSongMenuItem?.isEnabled = true
             viewOnRadioParadiseMenuItem?.isEnabled = true
-            MusicService.shared.preloadSong(title: songInfo.title, artist: songInfo.artist)
         } else {
             shareSongMenuItem?.isEnabled = false
             viewOnRadioParadiseMenuItem?.isEnabled = false

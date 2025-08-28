@@ -150,7 +150,7 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
                     // Calculate how many seconds from now until the next song
                     var onRadioBreak = false
                     let currentTime = Date().timeIntervalSince1970
-                    var timeUntilNextSong = max(nextSongTime - currentTime + 5, 5)
+                    let timeUntilNextSong = max(nextSongTime - currentTime + 5, 5)
                     print("∆: \(nextSongTime - currentTime)")
                     if (nextSongTime - currentTime < 0) {
                         // We're probably in a commercial break. Set the title and refresh a little later.
@@ -158,32 +158,22 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
                         title = "Break"
                         songId = ""
                         onRadioBreak = true
-                        timeUntilNextSong = 10
                     }
 
                     if (onRadioBreak) {
                         DispatchQueue.main.async {
                             self.songInfo.coverArt = NSImage(named: "AppIcon")
-                            self.updateSystemNowPlaying()
-                            StatusMenuController.shared.updateAlbumArt()
+                            self.updateUI()
                         }
                     } else if (coverArtUrl.isEmpty) {
                         self.songInfo.coverArt = nil
-                        // Update the menu album art on main thread
-                        DispatchQueue.main.async {
-                            StatusMenuController.shared.updateAlbumArt()
-                        }
+                        self.updateUI()
                     } else {
                         let url = URL(string: "https://img.radioparadise.com/\(coverArtUrl)")!
                         let dataTask = URLSession.shared.dataTask(with: url) { [weak self] (data, _, _) in
                             if let data = data, let image = NSImage(data: data) {
                                 self?.songInfo.coverArt = image
-                                self?.updateSystemNowPlaying()
-
-                                // Update the menu album art on main thread
-                                DispatchQueue.main.async {
-                                    StatusMenuController.shared.updateAlbumArt()
-                                }
+                                self?.updateUI()
                             }
                         }
                         dataTask.resume()
@@ -191,21 +181,17 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
 
                     DispatchQueue.main.async {
                         // Update stored song info
-                        self.songInfo = SongInfo(
-                            artist: artist,
-                            title: title,
-                            songId: songId,
-                            coverArt: nil
-                        )
-
-                        StatusMenuController.shared.updateNowPlaying(
-                            isPaused: !self.isPlaying
-                        )
-
-                        // Update system Now Playing
-                        if self.isPlaying {
-                            self.updateSystemNowPlaying()
+                        if (songId != self.songInfo.songId) {
+                            self.songInfo = SongInfo(
+                                artist: artist,
+                                title: title,
+                                songId: songId,
+                                coverArt: nil
+                            )
+                            MusicService.shared.preloadCurrentSong()
                         }
+
+                        self.updateUI()
 
                         // Schedule the next update
                         self.scheduleNextUpdate(in: timeUntilNextSong)
@@ -255,6 +241,16 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
         print("Next song info update scheduled in \(Int(seconds)) seconds")
     }
 
+    func updateUI() {
+        let isPlaying = self.isPlaying
+        DispatchQueue.main.async {
+            StatusMenuController.shared.updatePlayPauseButton(isPlaying: isPlaying)
+            StatusMenuController.shared.updateNowPlaying()
+            StatusMenuController.shared.updateAlbumArt()
+            self.updateSystemNowPlaying()
+        }
+    }
+
     // MARK: - AudioPlayerDelegate
 
     func audioPlayerStateChanged(player: AudioPlayer, with newState: AudioPlayerState, previous: AudioPlayerState) {
@@ -262,27 +258,14 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
         case .ready:
             updateNowPlaying()
             fallthrough
-        case .playing:
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                self.updateSystemNowPlaying()
-            }
-            fallthrough
-        case .bufferring, .running:
-            DispatchQueue.main.async {
-                StatusMenuController.shared.updatePlayPauseButton(isPlaying: true)
-            }
-            break
         case .error:
             DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
                 self.setupPlayer()
                 self.play()
             }
             fallthrough
-        case .paused, .stopped:
-            DispatchQueue.main.async {
-                StatusMenuController.shared.updatePlayPauseButton(isPlaying: false)
-                self.updateSystemNowPlaying()
-            }
+        case .playing, .bufferring, .running, .paused, .stopped:
+            self.updateUI()
             break
         default:
             break

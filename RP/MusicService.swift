@@ -206,14 +206,23 @@ class MusicService {
 
     // MARK: - Preloading
 
-    func preloadSong(title: String, artist: String) {
+    func preloadCurrentSong() {
         // Cancel any existing preload task
         currentPreloadTask?.cancel()
+
+        let currentSong = RadioPlayer.shared.currentSongInfo()
+        if (currentSong.songId.isEmpty) {
+            return;
+        }
+
+        let artist = currentSong.artist
+        let title = currentSong.title
 
         if !self.hasAuthorization() {
             // No need to preload
             print("Not authorized to Apple Music yet")
             DispatchQueue.main.async {
+                // We set this true because we want the user to be able to select it and start authorization
                 StatusMenuController.shared.updateSongPreloadStatus(isReady: true)
             }
             return;
@@ -223,7 +232,7 @@ class MusicService {
 
         // Skip if this song is already cached
         if songCache.value(forKey: key) != nil {
-            print("Song already cached: \(title) - \(artist)")
+            print("Song already cached: \(currentSong.title) - \(currentSong.artist)")
             // Notify that the song is ready
             DispatchQueue.main.async {
                 StatusMenuController.shared.updateSongPreloadStatus(isReady: true)
