@@ -40,7 +40,7 @@ class HoverableImageView: NSImageView {
     }
 }
 
-class StatusMenuController: NSObject {
+class StatusMenuController: NSObject, NSMenuDelegate {
     static let shared = StatusMenuController()
 
     private let statusItem: NSStatusItem
@@ -61,6 +61,17 @@ class StatusMenuController: NSObject {
     // About window
     private var aboutWindow: AboutWindow?
 
+    // Width animation properties
+    private var widthAnimationTimer: Timer?
+    private var isAnimatingWidth = false
+    private var animationStep = 0
+    private var maxAnimationSteps = 15
+    private var isExpandingAnimation = true
+    private var baseText = ""
+    private var lastPlayingState: Bool?
+    private var pendingAnimationToExpand: String?
+    private var pendingAnimationToContract = false
+    private var isMenuOpen = false
 
     private override init() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -72,6 +83,7 @@ class StatusMenuController: NSObject {
     deinit {
         // Clean up timers and overlays
         hoverTimer?.invalidate()
+        widthAnimationTimer?.invalidate()
         overlayWindow?.close()
         aboutWindow = nil
     }
@@ -136,7 +148,8 @@ class StatusMenuController: NSObject {
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         
         statusItem.menu = menu
-        
+        menu.delegate = self
+
         // Store references to menu items
         self.nowPlayingMenuItem = nowPlayingItem
         self.addToPlaylistMenuItem = addToPlaylistItem
@@ -294,35 +307,57 @@ class StatusMenuController: NSObject {
     func updateNowPlaying() {
         let isPlaying = RadioPlayer.shared.isPlaying
         let songInfo = RadioPlayer.shared.currentSongInfo()
-        let songText = "\(songInfo.artist) - \(songInfo.title)"
+
+        // Use "Radio Paradise" if we don't have real song info yet
+        let songText: String
+        if songInfo.artist.isEmpty || songInfo.title.isEmpty {
+            songText = "Radio Paradise"
+        } else {
+            songText = "\(songInfo.artist) - \(songInfo.title)"
+        }
 
         // Update the custom view with song information
-        let displayText = !isPlaying ? "\(songText) (Paused)" : songText
-        songInfoLabel?.stringValue = displayText
+        songInfoLabel?.stringValue = songText
+
+        // Update the "Now Playing" label based on state
+        nowPlayingLabel?.stringValue = isPlaying ? "Now Playing" : "Paused"
 
         // Initially disable Apple Music features until preloading completes
         addToPlaylistMenuItem?.isEnabled = false
         shareSongMenuItem?.isEnabled = false
         viewOnRadioParadiseMenuItem?.isEnabled = false
 
-        statusItem.button?.title = truncatedString(songText)
+        // Handle width animation based on play/pause state - only animate on state change
+        if lastPlayingState == nil {
+            // First time - just set the state without animation
+            lastPlayingState = isPlaying
+            if isPlaying {
+                setStatusItemToText(truncatedString(songText))
+            } else {
+                setStatusItemToIcon()
+            }
+        } else if lastPlayingState != isPlaying {
+            lastPlayingState = isPlaying
+
+            if isPlaying {
+                // Show full track info and animate to full width
+                animateToFullWidth(with: truncatedString(songText))
+            } else {
+                // Show app icon and animate to icon width
+                animateToIconWidth()
+            }
+        } else if isPlaying && !isAnimatingWidth && !isMenuOpen {
+            // Update text if playing but not animating and menu is closed
+            setStatusItemToText(truncatedString(songText))
+        }
 
         // Update album art
         updateAlbumArt()
 
-        // Trigger preloading if this is a song
-        if !songInfo.songId.isEmpty {
-            shareSongMenuItem?.isEnabled = true
-            viewOnRadioParadiseMenuItem?.isEnabled = true
-        } else {
-            shareSongMenuItem?.isEnabled = false
-            viewOnRadioParadiseMenuItem?.isEnabled = false
-            updateSongPreloadStatus(isReady: false)
-        }
-    }
-
-    func updateSongPreloadStatus(isReady: Bool) {
-        addToPlaylistMenuItem?.isEnabled = isReady
+        // Update menu items based on song info
+        shareSongMenuItem?.isEnabled = !songInfo.songId.isEmpty
+        viewOnRadioParadiseMenuItem?.isEnabled = !songInfo.songId.isEmpty
+        addToPlaylistMenuItem?.isEnabled = !songInfo.songId.isEmpty
     }
 
     func updateAlbumArt() {
@@ -642,5 +677,184 @@ class StatusMenuController: NSObject {
         }, completionHandler: { [weak window] in
             window?.close()
         })
+    }
+
+    // MARK: - Width Animation for Play/Pause
+
+    private func animateToFullWidth(with text: String) {
+        // If already animating to expand, don't restart
+        if isAnimatingWidth && isExpandingAnimation {
+            return
+        }
+
+        // Check if menu is open - if so, defer the animation
+        if isMenuOpen {
+            pendingAnimationToExpand = text
+            pendingAnimationToContract = false
+            return
+        }
+
+        // Clear any pending animations
+        pendingAnimationToExpand = nil
+        pendingAnimationToContract = false
+
+        // Always animate when going from paused to playing
+        stopWidthAnimation()
+
+        // Start expansion animation
+        baseText = text
+        isExpandingAnimation = true
+        animationStep = 0
+        startSimpleAnimation()
+    }
+
+    private func animateToIconWidth() {
+        // If already animating to contract, don't restart
+        if isAnimatingWidth && !isExpandingAnimation {
+            return
+        }
+
+        // Check if menu is open - if so, defer the animation
+        if isMenuOpen {
+            pendingAnimationToContract = true
+            pendingAnimationToExpand = nil
+            return
+        }
+
+        // Clear any pending animations
+        pendingAnimationToExpand = nil
+        pendingAnimationToContract = false
+
+        // Start contraction animation
+        baseText = statusItem.button?.title ?? ""
+        isExpandingAnimation = false
+        animationStep = 0
+        startSimpleAnimation()
+    }
+
+    private func startSimpleAnimation() {
+        guard !isAnimatingWidth else { return }
+
+        isAnimatingWidth = true
+        statusItem.button?.image = nil // Clear any icon
+
+        // Set initial state
+        if isExpandingAnimation {
+            setStatusItemToIcon()
+        }
+
+        widthAnimationTimer = Timer.scheduledTimer(withTimeInterval: 0.02, repeats: true) { [weak self] _ in
+            self?.updateSimpleAnimation()
+        }
+    }
+
+    private func updateSimpleAnimation() {
+        animationStep += 1
+
+        if isExpandingAnimation {
+            // Expanding: start with app icon and gradually show more text
+            if animationStep >= maxAnimationSteps {
+                statusItem.button?.title = baseText
+                stopWidthAnimation()
+            } else {
+                let progress = CGFloat(animationStep) / CGFloat(maxAnimationSteps)
+
+                if animationStep <= 2 {
+                    // Start with the app icon for first couple frames
+                    setStatusItemToIcon()
+                } else {
+                    // Gradually reveal the text
+                    statusItem.button?.image = nil // Clear icon
+                    let targetLength = baseText.count
+                    let revealLength = Int(CGFloat(targetLength) * progress)
+
+                    if revealLength <= 1 {
+                        statusItem.button?.title = String(baseText.prefix(1))
+                    } else {
+                        let revealedText = String(baseText.prefix(revealLength))
+                        statusItem.button?.title = revealedText
+                    }
+                }
+            }
+        } else {
+            // Contracting: gradually reduce text to app icon
+            if animationStep >= maxAnimationSteps {
+                setStatusItemToIcon()
+                stopWidthAnimation()
+            } else {
+                let progress = CGFloat(animationStep) / CGFloat(maxAnimationSteps)
+                let startLength = baseText.count
+                let currentLength = max(1, Int(CGFloat(startLength) * (1.0 - progress)))
+                if currentLength <= 1 {
+                    setStatusItemToIcon()
+                    stopWidthAnimation()
+                } else {
+                    statusItem.button?.title = String(baseText.prefix(currentLength))
+                }
+            }
+        }
+    }
+
+    private func setStatusItemToIcon() {
+        // Clear the title and set the app icon
+        statusItem.button?.title = ""
+
+        // Try to get the app icon
+        if let appIcon = NSApp.applicationIconImage {
+            let iconSize = NSSize(width: 18, height: 18)
+            let resizedIcon = NSImage(size: iconSize)
+            resizedIcon.lockFocus()
+            appIcon.draw(in: NSRect(origin: .zero, size: iconSize))
+            resizedIcon.unlockFocus()
+            statusItem.button?.image = resizedIcon
+        } else {
+            // Fallback to text if no icon available
+            statusItem.button?.title = "♫"
+        }
+    }
+
+    private func setStatusItemToText(_ text: String) {
+        // Clear the image and set the text
+        statusItem.button?.image = nil
+        statusItem.button?.title = text
+    }
+
+    private func stopWidthAnimation() {
+        widthAnimationTimer?.invalidate()
+        widthAnimationTimer = nil
+        isAnimatingWidth = false
+    }
+
+    // MARK: - NSMenuDelegate
+
+    func menuWillOpen(_ menu: NSMenu) {
+        isMenuOpen = true
+    }
+
+    func menuDidClose(_ menu: NSMenu) {
+        isMenuOpen = false
+
+        // Execute any pending animations after the menu closes
+        if let expandText = pendingAnimationToExpand {
+            pendingAnimationToExpand = nil
+            animateToFullWidth(with: expandText)
+        } else if pendingAnimationToContract {
+            pendingAnimationToContract = false
+            animateToIconWidth()
+        } else {
+            // Check if we need to update the current state without animation
+            let isPlaying = RadioPlayer.shared.isPlaying
+            let songInfo = RadioPlayer.shared.currentSongInfo()
+            let songText: String
+            if songInfo.artist.isEmpty || songInfo.title.isEmpty {
+                songText = "Radio Paradise"
+            } else {
+                songText = "\(songInfo.artist) - \(songInfo.title)"
+            }
+
+            if isPlaying && !isAnimatingWidth {
+                setStatusItemToText(truncatedString(songText))
+            }
+        }
     }
 }

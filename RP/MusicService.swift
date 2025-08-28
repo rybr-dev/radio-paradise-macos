@@ -221,10 +221,6 @@ class MusicService {
         if !self.hasAuthorization() {
             // No need to preload
             print("Not authorized to Apple Music yet")
-            DispatchQueue.main.async {
-                // We set this true because we want the user to be able to select it and start authorization
-                StatusMenuController.shared.updateSongPreloadStatus(isReady: true)
-            }
             return;
         }
         
@@ -233,10 +229,6 @@ class MusicService {
         // Skip if this song is already cached
         if songCache.value(forKey: key) != nil {
             print("Song already cached: \(currentSong.title) - \(currentSong.artist)")
-            // Notify that the song is ready
-            DispatchQueue.main.async {
-                StatusMenuController.shared.updateSongPreloadStatus(isReady: true)
-            }
             return
         }
 
@@ -254,10 +246,6 @@ class MusicService {
 
                     // Notify based on whether we found and cached the song
                     let isReady = song != nil
-                    DispatchQueue.main.async {
-                        StatusMenuController.shared.updateSongPreloadStatus(isReady: isReady)
-                    }
-
                     if isReady {
                         print("Preloaded song: \(title) - \(artist)")
                     } else {
@@ -268,10 +256,6 @@ class MusicService {
                 guard !Task.isCancelled else { return }
 
                 print("Failed to preload song: \(error)")
-                // On error, disable menu items
-                DispatchQueue.main.async {
-                    StatusMenuController.shared.updateSongPreloadStatus(isReady: false)
-                }
             }
         }
     }

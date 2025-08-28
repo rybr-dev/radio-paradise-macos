@@ -15,8 +15,11 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
 
     private var player: AudioPlayer?
     private var timer: Timer?
+    private var pauseTimer: Timer?
 
     private var songInfo: SongInfo = SongInfo()
+    private var originalSongInfo: SongInfo = SongInfo()
+    private var isPausedLongEnough = false
     func currentSongInfo() -> SongInfo {
         return songInfo
     }
@@ -35,24 +38,79 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
     }
 
     func play() {
+        // Cancel pause timer and restore original song info if needed
+        pauseTimer?.invalidate()
+        pauseTimer = nil
+
+        if isPausedLongEnough {
+            isPausedLongEnough = false
+            songInfo = originalSongInfo
+        }
+
         player?.play(url: currentStreamURL)
         updateNowPlaying()
     }
 
     func pause() {
         player?.pause()
+        startPauseTimer()
+    }
+
+    private func startPauseTimer() {
+        // Cancel any existing pause timer
+        pauseTimer?.invalidate()
+
+        // Store the original song info before we potentially modify it
+        originalSongInfo = songInfo
+        isPausedLongEnough = false
+
+        // Start a 15-second timer
+        pauseTimer = Timer.scheduledTimer(withTimeInterval: 15.0, repeats: false) { [weak self] _ in
+            self?.handleLongPause()
+        }
+    }
+
+    private func handleLongPause() {
+        guard !isPlaying else { return }
+
+        isPausedLongEnough = true
+
+        // Stop the song update timer since we're no longer showing real song info
+        timer?.invalidate()
+        timer = nil
+
+        // Get current channel name
+        let currentChannelIndex = getCurrentChannelIndex()
+        let channelName = CHANNEL_DATA[currentChannelIndex].title
+
+        // Update song info to show Radio Paradise and channel name
+        songInfo = SongInfo(
+            artist: "Radio Paradise",
+            title: channelName,
+            songId: "",
+            coverArt: NSImage(named: "AppIcon")
+        )
+
+        // Update the UI
+        updateUI()
     }
 
     func stop() {
         timer?.invalidate()
+        pauseTimer?.invalidate()
+        pauseTimer = nil
+        isPausedLongEnough = false
         player?.stop()
     }
 
     func switchChannel() {
         let wasPlaying = isPlaying
 
-        // Stop current playback
+        // Stop current playback and cancel pause timer
         timer?.invalidate()
+        pauseTimer?.invalidate()
+        pauseTimer = nil
+        isPausedLongEnough = false
         player?.stop()
 
         // Only restart if we were playing before
@@ -264,7 +322,24 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
                 self.play()
             }
             fallthrough
-        case .playing, .bufferring, .running, .paused, .stopped:
+        case .playing, .bufferring, .running:
+            // Cancel pause timer when playing
+            pauseTimer?.invalidate()
+            pauseTimer = nil
+            if isPausedLongEnough {
+                isPausedLongEnough = false
+                songInfo = originalSongInfo
+            }
+            self.updateUI()
+            break
+        case .paused:
+            startPauseTimer()
+            self.updateUI()
+            break
+        case .stopped:
+            pauseTimer?.invalidate()
+            pauseTimer = nil
+            isPausedLongEnough = false
             self.updateUI()
             break
         default:
