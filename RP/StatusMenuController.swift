@@ -285,7 +285,7 @@ class StatusMenuController: NSObject {
         if let image = NSImage(systemSymbolName: imageName, accessibilityDescription: nil) {
             var config = NSImage.SymbolConfiguration(textStyle: .body,
                                                                  scale: .large)
-                config = config.applying(.init(paletteColors: [.black]))
+                config = config.applying(.init(paletteColors: [.labelColor]))
             button.image = image.withSymbolConfiguration(config)
         } else {
             // Fallback to text if system symbols aren't available
