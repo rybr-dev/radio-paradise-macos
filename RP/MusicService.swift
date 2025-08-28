@@ -212,6 +212,10 @@ class MusicService {
 
         if !self.hasAuthorization() {
             // No need to preload
+            print("Not authorized to Apple Music yet")
+            DispatchQueue.main.async {
+                StatusMenuController.shared.updateSongPreloadStatus(isReady: true)
+            }
             return;
         }
         

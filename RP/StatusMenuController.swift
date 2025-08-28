@@ -312,17 +312,19 @@ class StatusMenuController: NSObject {
 
         // Trigger preloading if this is a song
         if isSong {
+            shareSongMenuItem?.isEnabled = true
+            viewOnRadioParadiseMenuItem?.isEnabled = true
             let songInfo = RadioPlayer.shared.currentSongInfo
             MusicService.shared.preloadSong(title: songInfo.title, artist: songInfo.artist)
         } else {
+            shareSongMenuItem?.isEnabled = false
+            viewOnRadioParadiseMenuItem?.isEnabled = false
             updateSongPreloadStatus(isReady: false)
         }
     }
 
     func updateSongPreloadStatus(isReady: Bool) {
         addToPlaylistMenuItem?.isEnabled = isReady
-        shareSongMenuItem?.isEnabled = isReady
-        viewOnRadioParadiseMenuItem?.isEnabled = isReady
     }
 
     func updateAlbumArt() {
