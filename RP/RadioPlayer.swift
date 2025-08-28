@@ -20,6 +20,7 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
     private var songInfo: SongInfo = SongInfo()
     private var originalSongInfo: SongInfo = SongInfo()
     private var isPausedLongEnough = false
+    private var isSwitchingChannels = false
     func currentSongInfo() -> SongInfo {
         return songInfo
     }
@@ -57,6 +58,9 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
     }
 
     private func startPauseTimer() {
+        // Don't start pause timer if we're switching channels
+        guard !isSwitchingChannels else { return }
+
         // Cancel any existing pause timer
         pauseTimer?.invalidate()
 
@@ -104,7 +108,8 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
     }
 
     func switchChannel() {
-        let wasPlaying = isPlaying
+        // Set flag to prevent pause animations during channel switch
+        isSwitchingChannels = true
 
         // Stop current playback and cancel pause timer
         timer?.invalidate()
@@ -113,17 +118,21 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
         isPausedLongEnough = false
         player?.stop()
 
-        // Only restart if we were playing before
-        if wasPlaying {
-            // Wait a moment for the stop to complete, then start with new channel
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                self.play()
-            }
+        // Always start playing after switching channels
+        // Wait a moment for the stop to complete, then start with new channel
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.play()
+            // Clear the flag after starting to play
+            self.isSwitchingChannels = false
         }
     }
 
     var isPlaying: Bool {
         return [.playing, .bufferring, .running].contains(player?.state)
+    }
+
+    var isCurrentlySwitchingChannels: Bool {
+        return isSwitchingChannels
     }
 
     private func findCurrentlyPlayingSong(from songs: [[String: Any]]) -> [String: Any]? {
@@ -333,7 +342,9 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
             self.updateUI()
             break
         case .paused:
-            startPauseTimer()
+            if !isSwitchingChannels {
+                startPauseTimer()
+            }
             self.updateUI()
             break
         case .stopped:

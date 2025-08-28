@@ -72,6 +72,7 @@ class StatusMenuController: NSObject, NSMenuDelegate {
     private var pendingAnimationToExpand: String?
     private var pendingAnimationToContract = false
     private var isMenuOpen = false
+    private var isSwitchingChannels = false
 
     private override init() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -258,6 +259,9 @@ class StatusMenuController: NSObject, NSMenuDelegate {
         // Update the menu checkmarks
         updateChannelMenuStates()
 
+        // Set flag to prevent animation during channel switch
+        isSwitchingChannels = true
+
         // Switch to the new channel
         RadioPlayer.shared.switchChannel()
 
@@ -289,6 +293,10 @@ class StatusMenuController: NSObject, NSMenuDelegate {
         if let button = playPauseButton {
             updatePlayPauseButtonImage(button, isPlaying: isPlaying)
         }
+    }
+
+    func setChannelSwitching(_ switching: Bool) {
+        isSwitchingChannels = switching
     }
 
     private func updatePlayPauseButtonImage(_ button: NSButton, isPlaying: Bool) {
@@ -328,6 +336,15 @@ class StatusMenuController: NSObject, NSMenuDelegate {
         viewOnRadioParadiseMenuItem?.isEnabled = false
 
         // Handle width animation based on play/pause state - only animate on state change
+        // Skip all state change handling if we're switching channels
+        if RadioPlayer.shared.isCurrentlySwitchingChannels {
+            // During channel switching, just update the text if playing
+            if isPlaying {
+                setStatusItemToText(truncatedString(songText))
+            }
+            return
+        }
+
         if lastPlayingState == nil {
             // First time - just set the state without animation
             lastPlayingState = isPlaying
@@ -349,6 +366,9 @@ class StatusMenuController: NSObject, NSMenuDelegate {
         } else if isPlaying && !isAnimatingWidth && !isMenuOpen {
             // Update text if playing but not animating and menu is closed
             setStatusItemToText(truncatedString(songText))
+        } else if !isPlaying {
+            // Always show icon when paused, regardless of song info changes
+            setStatusItemToIcon()
         }
 
         // Update album art
