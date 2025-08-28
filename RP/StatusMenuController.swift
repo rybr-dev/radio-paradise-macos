@@ -77,7 +77,6 @@ class StatusMenuController: NSObject, NSMenuDelegate {
     private override init() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         statusItem.button?.title = "Radio Paradise"
-
         super.init()
     }
 
@@ -91,6 +90,7 @@ class StatusMenuController: NSObject, NSMenuDelegate {
     
     public func setupMenu() {
         let menu = NSMenu()
+        menu.autoenablesItems = false
 
         // Combined album art and now playing item
         let nowPlayingItem = NSMenuItem(title: "", action: nil, keyEquivalent: "")

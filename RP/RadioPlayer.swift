@@ -194,16 +194,15 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
                 return
             }
 
+            // Get current channel name
+            let currentChannelIndex = getCurrentChannelIndex()
+            let channelName = CHANNEL_DATA[currentChannelIndex].title
+
             do {
                 if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                   let songs = json["song"] as? [[String: Any]],
-                   let currentSong = findCurrentlyPlayingSong(from: songs),
-                   let playTimeMillis = currentSong["play_time"] as? TimeInterval,
-                   let durationMillis = currentSong["duration"] as? String {
-
                     // Get artist, title, and song ID
-                    var artist = currentSong["artist"] as? String ?? "Unknown Artist"
-                    var title = currentSong["title"] as? String ?? "Unknown Song"
+                    var artist = currentSong["artist"] as? String ?? "Radio Paradise"
+                    var title = currentSong["title"] as? String ?? channelName
                     var songId = currentSong["song_id"] as? String ?? ""
                     let coverArtUrl = currentSong["cover"] as? String ?? ""
 
@@ -222,8 +221,8 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
                     if (nextSongTime - currentTime < 0) {
                         // We're probably in a commercial break. Set the title and refresh a little later.
                         artist = "Radio Paradise"
-                        title = "Break"
-                        songId = ""
+                        title = channelName
+                        songId = "__break"
                         onRadioBreak = true
                     }
 
