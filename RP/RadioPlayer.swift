@@ -3,17 +3,24 @@ import AudioStreaming
 import MediaPlayer
 import Cocoa
 
+struct SongInfo {
+    var artist: String = ""
+    var title: String = ""
+    var songId: String = ""
+    var coverArt: NSImage? = nil
+}
+
 class RadioPlayer: NSObject, AudioPlayerDelegate {
     static let shared = RadioPlayer()
 
     private var player: AudioPlayer?
     private var timer: Timer?
 
-    private var currentArtist: String = ""
-    private var currentTitle: String = ""
-    private var currentSongId: String = ""
-    private var currentCoverArt: NSImage?
-
+    private var songInfo: SongInfo = SongInfo()
+    func currentSongInfo() -> SongInfo {
+        return songInfo
+    }
+    
     private override init() {
         super.init()
         setupPlayer()
@@ -59,18 +66,6 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
 
     var isPlaying: Bool {
         return [.playing, .bufferring, .running].contains(player?.state)
-    }
-
-    var currentAlbumArt: NSImage? {
-        return currentCoverArt
-    }
-
-    var currentSongInfo: (songId: String, artist: String, title: String) {
-        return (currentSongId, currentArtist, currentTitle)
-    }
-
-    var songId: String {
-        return currentSongId
     }
 
     private func findCurrentlyPlayingSong(from songs: [[String: Any]]) -> [String: Any]? {
@@ -142,7 +137,7 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
                     // Get artist, title, and song ID
                     var artist = currentSong["artist"] as? String ?? "Unknown Artist"
                     var title = currentSong["title"] as? String ?? "Unknown Song"
-                    let songId = currentSong["song_id"] as? String ?? ""
+                    var songId = currentSong["song_id"] as? String ?? ""
                     let coverArtUrl = currentSong["cover"] as? String ?? ""
 
                     // Convert milliseconds to seconds
@@ -161,18 +156,19 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
                         // We're probably in a commercial break. Set the title and refresh a little later.
                         artist = "Radio Paradise"
                         title = "Break"
+                        songId = ""
                         onRadioBreak = true
                         timeUntilNextSong = 10
                     }
 
                     if (onRadioBreak) {
                         DispatchQueue.main.async {
-                            self.currentCoverArt = NSImage(named: "AppIcon")
+                            self.songInfo.coverArt = NSImage(named: "AppIcon")
                             self.updateSystemNowPlaying()
                             StatusMenuController.shared.updateAlbumArt()
                         }
                     } else if (coverArtUrl.isEmpty) {
-                        self.currentCoverArt = nil
+                        self.songInfo.coverArt = nil
                         // Update the menu album art on main thread
                         DispatchQueue.main.async {
                             StatusMenuController.shared.updateAlbumArt()
@@ -181,7 +177,7 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
                         let url = URL(string: "https://img.radioparadise.com/\(coverArtUrl)")!
                         let dataTask = URLSession.shared.dataTask(with: url) { [weak self] (data, _, _) in
                             if let data = data, let image = NSImage(data: data) {
-                                self?.currentCoverArt = image
+                                self?.songInfo.coverArt = image
                                 self?.updateSystemNowPlaying()
 
                                 // Update the menu album art on main thread
@@ -195,15 +191,14 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
 
                     DispatchQueue.main.async {
                         // Update stored song info
-                        self.currentArtist = artist
-                        self.currentTitle = title
-                        self.currentSongId = songId
+                        self.songInfo = SongInfo(
+                            artist: artist,
+                            title: title,
+                            songId: songId,
+                            coverArt: nil
+                        )
 
-                        // Notify status menu controller
-                        let fullSongInfo = "\(title) - \(artist)"
                         StatusMenuController.shared.updateNowPlaying(
-                            songInfo: fullSongInfo,
-                            isSong: !onRadioBreak,
                             isPaused: !self.isPlaying
                         )
 
@@ -231,12 +226,12 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
 
     private func updateSystemNowPlaying() {
         var nowPlayingInfo = [String: Any]()
-        nowPlayingInfo[MPMediaItemPropertyTitle] = self.currentTitle
-        nowPlayingInfo[MPMediaItemPropertyArtist] = self.currentArtist
+        nowPlayingInfo[MPMediaItemPropertyTitle] = self.songInfo.title
+        nowPlayingInfo[MPMediaItemPropertyArtist] = self.songInfo.artist
         nowPlayingInfo[MPMediaItemPropertyMediaType] = MPMediaType.anyAudio.rawValue
         nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream] = true
         nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = NSNumber(value: self.player?.rate ?? 0.0)
-        if let coverArt = self.currentCoverArt {
+        if let coverArt = self.songInfo.coverArt {
             nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: coverArt.size) { (
                 size: CGSize
             ) -> NSImage in

@@ -54,8 +54,6 @@ class StatusMenuController: NSObject {
     private var viewOnRadioParadiseMenuItem: NSMenuItem?
     private var nowPlayingMenuItem: NSMenuItem?
 
-    private var fullSongInfo: String = ""
-
     // Album art hover overlay properties
     private var hoverTimer: Timer?
     private var overlayWindow: OverlayWindow?
@@ -151,7 +149,7 @@ class StatusMenuController: NSObject {
     }
     
     @objc private func addToPlaylist() {
-        let songInfo = RadioPlayer.shared.currentSongInfo
+        let songInfo = RadioPlayer.shared.currentSongInfo()
         guard !songInfo.title.isEmpty && !songInfo.artist.isEmpty else {
             NotificationService.shared.showNotification(
                 title: "Cannot Add Song",
@@ -166,7 +164,7 @@ class StatusMenuController: NSObject {
     }
 
     @objc private func shareSong() {
-        let songInfo = RadioPlayer.shared.currentSongInfo
+        let songInfo = RadioPlayer.shared.currentSongInfo()
         guard !songInfo.title.isEmpty && !songInfo.artist.isEmpty else {
             NotificationService.shared.showNotification(
                 title: "Cannot Share Song",
@@ -185,8 +183,8 @@ class StatusMenuController: NSObject {
     }
 
     @objc private func viewOnRadioParadise() {
-        let songId = RadioPlayer.shared.songId
-        guard !songId.isEmpty else {
+        let songInfo = RadioPlayer.shared.currentSongInfo()
+        guard !songInfo.songId.isEmpty else {
             NotificationService.shared.showNotification(
                 title: "Cannot View Song",
                 body: "No song information available"
@@ -194,7 +192,7 @@ class StatusMenuController: NSObject {
             return
         }
 
-        let urlString = "https://radioparadise.com/music/song/\(songId)"
+        let urlString = "https://radioparadise.com/music/song/\(songInfo.songId)"
         if let url = URL(string: urlString) {
             NSWorkspace.shared.open(url)
         }
@@ -293,11 +291,12 @@ class StatusMenuController: NSObject {
         }
     }
     
-    func updateNowPlaying(songInfo: String, isSong: Bool, isPaused: Bool) {
-        fullSongInfo = songInfo
+    func updateNowPlaying(isPaused: Bool) {
+        let songInfo = RadioPlayer.shared.currentSongInfo()
+        let songText = "\(songInfo.artist) - \(songInfo.title)"
 
         // Update the custom view with song information
-        let displayText = isPaused ? "\(fullSongInfo) (Paused)" : fullSongInfo
+        let displayText = isPaused ? "\(songText) (Paused)" : songText
         songInfoLabel?.stringValue = displayText
 
         // Initially disable Apple Music features until preloading completes
@@ -305,16 +304,15 @@ class StatusMenuController: NSObject {
         shareSongMenuItem?.isEnabled = false
         viewOnRadioParadiseMenuItem?.isEnabled = false
 
-        statusItem.button?.title = truncatedString(fullSongInfo)
+        statusItem.button?.title = truncatedString(songText)
 
         // Update album art
         updateAlbumArt()
 
         // Trigger preloading if this is a song
-        if isSong {
+        if !songInfo.songId.isEmpty {
             shareSongMenuItem?.isEnabled = true
             viewOnRadioParadiseMenuItem?.isEnabled = true
-            let songInfo = RadioPlayer.shared.currentSongInfo
             MusicService.shared.preloadSong(title: songInfo.title, artist: songInfo.artist)
         } else {
             shareSongMenuItem?.isEnabled = false
@@ -328,8 +326,8 @@ class StatusMenuController: NSObject {
     }
 
     func updateAlbumArt() {
-        let albumArt = RadioPlayer.shared.currentAlbumArt
-        if let albumArt = albumArt {
+        let songInfo = RadioPlayer.shared.currentSongInfo()
+        if let albumArt = songInfo.coverArt {
             // Use the actual album art
             albumArtImageView?.image = albumArt
         } else {
