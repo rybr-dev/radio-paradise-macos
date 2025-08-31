@@ -314,9 +314,10 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
         stopUpdateTimer()
 
         // Schedule a new timer on the main queue to ensure it has an active run loop
-        // We add a 5sec fudge factor to account for crossfade/transitions
+        // We add a 7.5sec fudge factor to account for crossfade/transitions. This is a total
+        // vibe check and will probably be off sometimes :)
         DispatchQueue.main.async {
-            self.updateTimer = Timer.scheduledTimer(withTimeInterval: seconds + 5.0, repeats: false) { timer in
+            self.updateTimer = Timer.scheduledTimer(withTimeInterval: seconds + 7.5, repeats: false) { timer in
                 self.updateNowPlaying()
             }
         }
