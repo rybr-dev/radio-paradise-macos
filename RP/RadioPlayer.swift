@@ -134,7 +134,7 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
             self.stopPauseTimer()
             
             // Start a 15-second timer
-            self.pauseTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { [weak self] _ in
+            self.pauseTimer = Timer.scheduledTimer(withTimeInterval: 15.0, repeats: false) { [weak self] _ in
                 self?.handleLongPause()
             }
         }
