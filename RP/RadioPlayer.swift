@@ -215,8 +215,8 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
                 if songInfo != nil {
                     // If there is song info, we'll update with the additional details.
                     // (Otherwise, we're likely on a radio break or there's other narration going on.)
-                    MusicService.shared.preloadCurrentSong()
                     self.updateNowPlayingDetails()
+                    MusicService.shared.preloadCurrentSong()
                 }
             case .failure:
                 DispatchQueue.main.async {
