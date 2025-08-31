@@ -2,7 +2,8 @@ import Foundation
 
 // URL format constants
 let bundleIdentifier = Bundle.main.bundleIdentifier ?? "dev.rybr.radioparadise"
-let RP_API_URL_FORMAT = "https://api.radioparadise.com/api/nowplaying_list_v2022?chan=%ld&list_num=4&player_id=\(bundleIdentifier)"
+let RP_NOW_PLAYING_URL_FORMAT = "https://api.radioparadise.com/api/now_playing?chan=%ld&player_id=\(bundleIdentifier)"
+let RP_NOW_PLAYING_DETAILS_URL_FORMAT = "https://api.radioparadise.com/api/nowplaying_list_v2022?chan=%ld&list_num=1&player_id=\(bundleIdentifier)"
 let RP_STREAM_URL_FORMAT = "http://stream.radioparadise.com/%@"
 
 // Channel structure
@@ -15,8 +16,12 @@ struct Channel {
         return URL(string: String(format: RP_STREAM_URL_FORMAT, streamID))!
     }
 
-    var apiURL: URL {
-        return URL(string: String(format: RP_API_URL_FORMAT, channelID))!
+    var nowPlayingAPIURL: URL {
+        return URL(string: String(format: RP_NOW_PLAYING_URL_FORMAT, channelID))!
+    }
+
+    var nowPlayingDetailsAPIURL: URL {
+        return URL(string: String(format: RP_NOW_PLAYING_DETAILS_URL_FORMAT, channelID))!
     }
 }
 
@@ -100,9 +105,13 @@ func getCurrentChannelIndex() -> Int {
     return 0 // Default to Main Mix
 }
 
-// Current API URL and Stream URL based on selected channel
-var currentChannelInfoURL: URL {
-    return getCurrentChannel().apiURL
+// Current API URLs and Stream URL based on selected channel
+var currentChannelNowPlayingURL: URL {
+    return getCurrentChannel().nowPlayingAPIURL
+}
+
+var currentChannelNowPlayingDetailsURL: URL {
+    return getCurrentChannel().nowPlayingDetailsAPIURL
 }
 
 var currentStreamURL: URL {
