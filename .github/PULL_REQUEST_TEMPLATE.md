@@ -10,7 +10,7 @@ Fixes #<issue_number> (if applicable)
 
 **What changed?**
   - 
-  
+
 **Why is this change needed?**
   - 
 

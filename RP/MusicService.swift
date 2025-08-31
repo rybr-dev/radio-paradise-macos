@@ -10,17 +10,17 @@ class MusicService {
     static let shared = MusicService()
 
     private var songCache = LRUCache<String, Song>(countLimit: 100)
-    
+
     private var currentPreloadTask: Task<Void, Never>?
 
     func authorization() -> MusicAuthorization.Status {
         return MusicAuthorization.currentStatus
     }
-    
+
     func hasAuthorization() -> Bool {
         return self.authorization() == .authorized;
     }
-    
+
     func requestAuthorization() async -> Bool {
         let authStatus = await MusicAuthorization.request()
         switch authStatus {
@@ -32,7 +32,7 @@ class MusicService {
             return false
         }
     }
-    
+
     // MARK: - Private Helper Methods
 
     private func cacheKey(title: String, artist: String) -> String {
@@ -126,7 +126,7 @@ class MusicService {
             )
         }
     }
-    
+
     // TODO
     // There is some inconsistent behavior with playlists in MusicKit. In particular:
     // - if a user deletes our playlist, MusicKit [inconsistently] still lets you add songs to it. By all
@@ -137,7 +137,7 @@ class MusicService {
     // is the most consistent approach for now.
     private func findOrCreatePlaylistId(named name: String) async throws -> String {
         var playlistId: String?
-            
+
         do {
             // Search for existing playlist
             let playlists = try await MLibrary.playlists(limit: 0)
@@ -150,7 +150,7 @@ class MusicService {
         } catch {
             print("Error searching for playlist:", error)
         }
-            
+
         if (playlistId == nil) {
             // If we didn't find our playlist, we'll create one
             do {
@@ -161,7 +161,7 @@ class MusicService {
                 print("Error creating playlist:", error)
             }
         }
-            
+
         if (playlistId == nil) {
             throw NSError(
                 domain: Bundle.main.bundleIdentifier ?? "app",
@@ -169,7 +169,7 @@ class MusicService {
                 userInfo: [NSLocalizedDescriptionKey : "Failed to find or create playlist"]
             )
         }
-            
+
         return playlistId!
     }
 
@@ -207,24 +207,28 @@ class MusicService {
 
     // MARK: - Preloading
 
-    func preloadSong(title: String, artist: String) {
+    func preloadCurrentSong() {
         // Cancel any existing preload task
         currentPreloadTask?.cancel()
 
+        guard let currentSong = RadioPlayer.shared.currentSongInfo else {
+            return
+        }
+
+        let artist = currentSong.artist
+        let title = currentSong.title
+
         if !self.hasAuthorization() {
             // No need to preload
+            print("Not authorized to Apple Music yet")
             return;
         }
-        
+
         let key = cacheKey(title: title, artist: artist)
 
         // Skip if this song is already cached
         if songCache.value(forKey: key) != nil {
-            print("Song already cached: \(title) - \(artist)")
-            // Notify that the song is ready
-            DispatchQueue.main.async {
-                StatusMenuController.shared.updateSongPreloadStatus(isReady: true)
-            }
+            print("Song already cached: \(currentSong.title) - \(currentSong.artist)")
             return
         }
 
@@ -242,10 +246,6 @@ class MusicService {
 
                     // Notify based on whether we found and cached the song
                     let isReady = song != nil
-                    DispatchQueue.main.async {
-                        StatusMenuController.shared.updateSongPreloadStatus(isReady: isReady)
-                    }
-
                     if isReady {
                         print("Preloaded song: \(title) - \(artist)")
                     } else {
@@ -256,10 +256,6 @@ class MusicService {
                 guard !Task.isCancelled else { return }
 
                 print("Failed to preload song: \(error)")
-                // On error, disable menu items
-                DispatchQueue.main.async {
-                    StatusMenuController.shared.updateSongPreloadStatus(isReady: false)
-                }
             }
         }
     }

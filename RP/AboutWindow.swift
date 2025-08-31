@@ -32,7 +32,7 @@ class AboutWindow: NSObject, NSWindowDelegate {
 
         // Center the window on screen
         window.center()
-        
+
         // Configure the text view for links
         configureCreditsTextView()
 
@@ -40,7 +40,7 @@ class AboutWindow: NSObject, NSWindowDelegate {
         // Show the window
         window.makeKeyAndOrderFront(nil)
     }
-    
+
     // MARK: - Text View Configuration
 
     private func configureCreditsTextView() {
@@ -63,10 +63,10 @@ class AboutWindow: NSObject, NSWindowDelegate {
         creditsTextView.isAutomaticSpellingCorrectionEnabled = false
         creditsTextView.isAutomaticQuoteSubstitutionEnabled = false
         creditsTextView.isAutomaticDashSubstitutionEnabled = false
-        
+
         creditsTextView.textStorage?.setAttributedString(creditsText())
     }
-    
+
     private func creditsText() -> NSAttributedString {
         // Update version and credits label
         let _ = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
@@ -93,7 +93,7 @@ class AboutWindow: NSObject, NSWindowDelegate {
             .underlineStyle: NSUnderlineStyle.single.rawValue
         ]
 
-        attributedString.append(NSAttributedString(string: "Yo! Built with ❤️ by the Radio Paradise fans at ", attributes: baseAttributes))
+        attributedString.append(NSAttributedString(string: "Built with ❤️ by the Radio Paradise fans at ", attributes: baseAttributes))
 
         // Add rybr.dev link
         let rybrLink = NSAttributedString(string: "rybr.dev", attributes: linkAttributes.merging([.link: "https://rybr.dev"], uniquingKeysWith: { _, new in new }))
