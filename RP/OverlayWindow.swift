@@ -7,7 +7,7 @@ import Cocoa
 
 class OverlayWindow: NSWindow {
     override var canBecomeKey: Bool { return true }
-    
+
     static func create(withRect overlayRect: NSRect) -> OverlayWindow {
         let window = OverlayWindow(
             contentRect: overlayRect,

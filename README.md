@@ -75,7 +75,7 @@ Things that would be cool to add:
 
 - **Station selector**: Stream other stations on Radio Paradise. This means researching and managing the other song feeds as well.
 - **Limited bandwidth fallback**: The 320kbps stream is buttery but in case of slow connections, it might be helpful to downshift to lower-bandwidth streams.
-  
+
 ## License
 
 This project is licensed under the GPLv3 License - see the [LICENSE](LICENSE) file for details.

@@ -12,7 +12,7 @@ class HoverableImageView: NSImageView {
     override func viewDidMoveToWindow() {
         window?.becomeKey()
     }
-    
+
     override func updateTrackingAreas() {
         super.updateTrackingAreas()
 
@@ -87,7 +87,7 @@ class StatusMenuController: NSObject, NSMenuDelegate {
         overlayWindow?.close()
         aboutWindow = nil
     }
-    
+
     public func setupMenu() {
         let menu = NSMenu()
         menu.autoenablesItems = false
@@ -97,7 +97,7 @@ class StatusMenuController: NSObject, NSMenuDelegate {
         nowPlayingItem.target = self
         createNowPlayingView(for: nowPlayingItem)
         menu.addItem(nowPlayingItem)
-        
+
         menu.addItem(NSMenuItem.separator())
 
         // Channel selection submenu
@@ -147,7 +147,7 @@ class StatusMenuController: NSObject, NSMenuDelegate {
         menu.addItem(aboutItem)
 
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
-        
+
         statusItem.menu = menu
         menu.delegate = self
 
@@ -161,10 +161,9 @@ class StatusMenuController: NSObject, NSMenuDelegate {
     @objc private func togglePlayPause() {
         RadioPlayer.shared.togglePlayPause()
     }
-    
+
     @objc private func addToPlaylist() {
-        let songInfo = RadioPlayer.shared.currentSongInfo()
-        guard !songInfo.title.isEmpty && !songInfo.artist.isEmpty else {
+        guard let songInfo = RadioPlayer.shared.currentSongInfo else {
             NotificationService.shared.showNotification(
                 title: "Cannot Add Song",
                 body: "No song information available"
@@ -178,8 +177,7 @@ class StatusMenuController: NSObject, NSMenuDelegate {
     }
 
     @objc private func shareSong() {
-        let songInfo = RadioPlayer.shared.currentSongInfo()
-        guard !songInfo.title.isEmpty && !songInfo.artist.isEmpty else {
+        guard let songInfo = RadioPlayer.shared.currentSongInfo, let songId = songInfo.songId else {
             NotificationService.shared.showNotification(
                 title: "Cannot Share Song",
                 body: "No song information available"
@@ -189,7 +187,7 @@ class StatusMenuController: NSObject, NSMenuDelegate {
 
         Task {
 //            let appleMusicSongUrl = MusicService.shared.getSongAppleMusicURL(title: songInfo.title, artist: songInfo.artist)
-            let radioParadiseUrlString = "https://radioparadise.com/music/song/\(songInfo.songId)"
+            let radioParadiseUrlString = "https://radioparadise.com/music/song/\(songId)"
             if let url = URL(string: radioParadiseUrlString) {
                 showShareSheet(for: url)
             }
@@ -197,8 +195,7 @@ class StatusMenuController: NSObject, NSMenuDelegate {
     }
 
     @objc private func viewOnRadioParadise() {
-        let songInfo = RadioPlayer.shared.currentSongInfo()
-        guard !songInfo.songId.isEmpty else {
+        guard let songInfo = RadioPlayer.shared.currentSongInfo, let songId = songInfo.songId else {
             NotificationService.shared.showNotification(
                 title: "Cannot View Song",
                 body: "No song information available"
@@ -206,7 +203,7 @@ class StatusMenuController: NSObject, NSMenuDelegate {
             return
         }
 
-        let urlString = "https://radioparadise.com/music/song/\(songInfo.songId)"
+        let urlString = "https://radioparadise.com/music/song/\(songId)"
         if let url = URL(string: urlString) {
             NSWorkspace.shared.open(url)
         }
@@ -311,20 +308,13 @@ class StatusMenuController: NSObject, NSMenuDelegate {
             button.title = isPlaying ? "⏸" : "▶"
         }
     }
-    
+
     func updateNowPlaying() {
         let isPlaying = RadioPlayer.shared.isPlaying
-        let songInfo = RadioPlayer.shared.currentSongInfo()
-
-        // Use "Radio Paradise" if we don't have real song info yet
-        let songText: String
-        if songInfo.artist.isEmpty || songInfo.title.isEmpty {
-            songText = "Radio Paradise"
-        } else {
-            songText = "\(songInfo.artist) - \(songInfo.title)"
-        }
+        let (songInfo, _) = RadioPlayer.shared.visibleSongInfo
 
         // Update the custom view with song information
+        let songText = "\(songInfo.artist) - \(songInfo.title)"
         songInfoLabel?.stringValue = songText
 
         // Update the "Now Playing" label based on state
@@ -337,7 +327,7 @@ class StatusMenuController: NSObject, NSMenuDelegate {
 
         // Handle width animation based on play/pause state - only animate on state change
         // Skip all state change handling if we're switching channels
-        if RadioPlayer.shared.isCurrentlySwitchingChannels {
+        if RadioPlayer.shared.isSwitchingChannels {
             // During channel switching, just update the text if playing
             if isPlaying {
                 setStatusItemToText(truncatedString(songText))
@@ -375,24 +365,17 @@ class StatusMenuController: NSObject, NSMenuDelegate {
         updateAlbumArt()
 
         // Update menu items based on song info
-        shareSongMenuItem?.isEnabled = !songInfo.songId.isEmpty
-        viewOnRadioParadiseMenuItem?.isEnabled = !songInfo.songId.isEmpty
-        addToPlaylistMenuItem?.isEnabled = !songInfo.songId.isEmpty
+        let actionItemsEnabled = !(songInfo.songId ?? "").isEmpty
+        shareSongMenuItem?.isEnabled = actionItemsEnabled
+        viewOnRadioParadiseMenuItem?.isEnabled = actionItemsEnabled
+        addToPlaylistMenuItem?.isEnabled = actionItemsEnabled
     }
 
     func updateAlbumArt() {
-        let songInfo = RadioPlayer.shared.currentSongInfo()
-        if let albumArt = songInfo.coverArt {
-            // Use the actual album art
-            albumArtImageView?.image = albumArt
-        } else {
-            // Use the blank CD image as fallback
-            if let blankCDImage = NSImage(named: "BlankCD") {
-                albumArtImageView?.image = blankCDImage
-            }
-        }
+        let (_, image) = RadioPlayer.shared.visibleSongInfo
+        albumArtImageView?.image = image
     }
-    
+
     private func truncatedString(_ string: String) -> String {
         return string.count > MENU_ITEM_MAX_LENGTH ?
         String(string.prefix(MENU_ITEM_MAX_LENGTH - 3)) + "..." :
@@ -864,14 +847,8 @@ class StatusMenuController: NSObject, NSMenuDelegate {
         } else {
             // Check if we need to update the current state without animation
             let isPlaying = RadioPlayer.shared.isPlaying
-            let songInfo = RadioPlayer.shared.currentSongInfo()
-            let songText: String
-            if songInfo.artist.isEmpty || songInfo.title.isEmpty {
-                songText = "Radio Paradise"
-            } else {
-                songText = "\(songInfo.artist) - \(songInfo.title)"
-            }
-
+            let (songInfo, _) = RadioPlayer.shared.visibleSongInfo
+            let songText = "\(songInfo.artist) - \(songInfo.title)"
             if isPlaying && !isAnimatingWidth {
                 setStatusItemToText(truncatedString(songText))
             }
