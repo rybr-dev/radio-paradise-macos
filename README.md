@@ -29,7 +29,7 @@ This app is not published or supported by Radio Paradise, and is created with pe
 
 ## Requirements
 
-- macOS 14.0 (Sonoma) or later
+- macOS 13.0 (Ventura) or later
 - Xcode 15.0 or later (for building)
 
 ## Contribute
