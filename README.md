@@ -2,11 +2,11 @@
 
 # Radio Paradise for macOS
 
-![Radio Paradise Menu Bar App](https://img.shields.io/badge/macOS-14.0+-blue) ![Swift](https://img.shields.io/badge/Swift-5.0-orange) ![License](https://img.shields.io/badge/License-GPTv3-green)
+![Radio Paradise Menu Bar App](https://img.shields.io/badge/macOS-13.0+-blue) ![Swift](https://img.shields.io/badge/Swift-6.1.2-orange) ![License](https://img.shields.io/badge/License-GPTv3-green)
 
 A native macOS menu bar app for streaming [Radio Paradise](https://radioparadise.com), commercial-free listener-supported Internet radio curated by real human beings.
 
-Supported on macOS 10.14 (Mojave) and higher.
+Supported on macOS 10.13 (Ventura) and higher (macOS 14 Sonoma required for Apple Music integration).
 
 This app is not published or supported by Radio Paradise, and is created with permission (and love and respect) by the RP fans at [rybr.dev](https://rybr.dev). Please support Radio Paradise at [https://radioparadise.com/support](https://radioparadise.com/support).
 
