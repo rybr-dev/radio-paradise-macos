@@ -73,7 +73,7 @@ with special thanks to their owners and contributors.
 ## TODO
 Things that would be cool to add:
 
-- **Station selector**: Stream other stations on Radio Paradise. This means researching and managing the other song feeds as well.
+- ~**Station selector**: Stream other stations on Radio Paradise. This means researching and managing the other song feeds as well.~ **DONE!**
 - **Limited bandwidth fallback**: The 320kbps stream is buttery but in case of slow connections, it might be helpful to downshift to lower-bandwidth streams.
 
 ## License
