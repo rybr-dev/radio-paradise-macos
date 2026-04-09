@@ -26,6 +26,8 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
     private(set) var isSwitchingChannels = false
     
     let albumArtCache = LRUCache<String, NSImage>(countLimit: 3)
+    private var cachedArtwork: MPMediaItemArtwork?
+    private var cachedArtworkCoverUrl: String?
     var visibleSongInfo: (SongInfo, NSImage) {
         get {
             let defaultImage = NSImage(named: "AppIcon")!
@@ -56,6 +58,19 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
             name: NSWorkspace.didWakeNotification,
             object: nil
         )
+
+        MPRemoteCommandCenter.shared().playCommand.addTarget { [weak self] event in
+            self?.play()
+            return .success
+        }
+        MPRemoteCommandCenter.shared().pauseCommand.addTarget { [weak self] event in
+            self?.pause()
+            return .success
+        }
+        MPRemoteCommandCenter.shared().togglePlayPauseCommand.addTarget { [weak self] event in
+            self?.togglePlayPause()
+            return .success
+        }
     }
 
     deinit {
@@ -64,21 +79,13 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
     }
     
     private func setupPlayer() {
+        if let currentPlayer = player {
+            currentPlayer.stop()
+            currentPlayer.delegate = nil
+            player = nil
+        }
         player = AudioPlayer()
         player?.delegate = self
-
-        MPRemoteCommandCenter.shared().playCommand.addTarget { event in
-            self.play()
-            return .success
-        }
-        MPRemoteCommandCenter.shared().pauseCommand.addTarget { event in
-            self.pause()
-            return .success
-        }
-        MPRemoteCommandCenter.shared().togglePlayPauseCommand.addTarget { event in
-            self.togglePlayPause()
-            return .success
-        }
     }
     
     //
@@ -107,7 +114,10 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
     }
     
     func pause() {
-        player?.pause()
+        // For a live stream there's no buffer worth preserving, and AudioStreaming's
+        // pause() leaves the network read loop running — which leaks QUIC frame
+        // buffers at audio-stream rate. Fully stop the player instead.
+        player?.stop()
         startPauseTimer()
     }
     
@@ -129,21 +139,21 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
         // Don't start pause timer if we're switching channels
         guard !isSwitchingChannels else { return }
         
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [weak self] in
             // Stop previous timers
-            self.stopPauseTimer()
+            self?.stopPauseTimer()
             
             // Start a 15-second timer
-            self.pauseTimer = Timer.scheduledTimer(withTimeInterval: 15.0, repeats: false) { [weak self] _ in
+            self?.pauseTimer = Timer.scheduledTimer(withTimeInterval: 15.0, repeats: false) { [weak self] _ in
                 self?.handleLongPause()
             }
         }
     }
     
     private func stopPauseTimer() {
-        DispatchQueue.main.async {
-            self.pauseTimer?.invalidate()
-            self.pauseTimer = nil
+        DispatchQueue.main.async { [weak self] in
+            self?.pauseTimer?.invalidate()
+            self?.pauseTimer = nil
         }
     }
 
@@ -176,10 +186,10 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
         
         // Always start playing after switching channels
         // Wait a moment for the stop to complete, then start with new channel
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            self.play()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            self?.play()
             // Clear the flag after starting to play
-            self.isSwitchingChannels = false
+            self?.isSwitchingChannels = false
         }
     }
     
@@ -207,7 +217,8 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
         //     we need in order to generate the share link).
         //   - tl;dr if the song ID was in /api/now_playing, it'd be a perfect endpoint :)
         //
-        fetchNowPlayingInfo { result in
+        fetchNowPlayingInfo { [weak self] result in
+            guard let self = self else { return }
             switch result {
             case .success(let (songInfo, nextUpdateTime)):
                 self.updateCurrentSong(songInfo)
@@ -221,8 +232,8 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
                     }
                 }
             case .failure:
-                DispatchQueue.main.async {
-                    self.scheduleNextUpdate(in: 30)
+                DispatchQueue.main.async { [weak self] in
+                    self?.scheduleNextUpdate(in: 30)
                 }
             }
         }
@@ -265,13 +276,13 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
     
     private func updateNowPlayingDetails() {
         print("Updating now playing detailed data")
-        fetchNowPlayingDetails { result in
+        fetchNowPlayingDetails { [weak self] result in
             switch result {
             case .success(let (songInfo)):
-                self.updateCurrentSong(songInfo)
+                self?.updateCurrentSong(songInfo)
             case .failure:
-                DispatchQueue.main.async {
-                    self.scheduleNextUpdate(in: 30)
+                DispatchQueue.main.async { [weak self] in
+                    self?.scheduleNextUpdate(in: 30)
                 }
             }
         }
@@ -318,9 +329,9 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
         // Schedule a new timer on the main queue to ensure it has an active run loop
         // We add a 7.5sec fudge factor to account for crossfade/transitions. This is a total
         // vibe check and will probably be off sometimes :)
-        DispatchQueue.main.async {
-            self.updateTimer = Timer.scheduledTimer(withTimeInterval: seconds + 7.5, repeats: false) { timer in
-                self.updateNowPlaying()
+        DispatchQueue.main.async { [weak self] in
+            self?.updateTimer = Timer.scheduledTimer(withTimeInterval: seconds + 7.5, repeats: false) { [weak self] timer in
+                self?.updateNowPlaying()
             }
         }
 
@@ -328,9 +339,9 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
     }
     
     private func stopUpdateTimer() {
-        DispatchQueue.main.async {
-            self.updateTimer?.invalidate()
-            self.updateTimer = nil
+        DispatchQueue.main.async { [weak self] in
+            self?.updateTimer?.invalidate()
+            self?.updateTimer = nil
         }
     }
     
@@ -363,22 +374,28 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
         nowPlayingInfo[MPMediaItemPropertyMediaType] = MPMediaType.anyAudio.rawValue
         nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream] = true
         nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = NSNumber(value: self.player?.rate ?? 0.0)
-        nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: coverImage.size) { (
-            size: CGSize
-        ) -> NSImage in
-            return coverImage
+
+        // Reuse cached artwork if cover URL hasn't changed to avoid memory accumulation
+        let currentCoverUrl = songInfo.coverArtUrl
+        if cachedArtwork == nil || cachedArtworkCoverUrl != currentCoverUrl {
+            cachedArtwork = MPMediaItemArtwork(boundsSize: coverImage.size) { _ in
+                return coverImage
+            }
+            cachedArtworkCoverUrl = currentCoverUrl
         }
+        nowPlayingInfo[MPMediaItemPropertyArtwork] = cachedArtwork
+
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
         MPNowPlayingInfoCenter.default().playbackState = self.isPlaying ? .playing : .paused
     }
     
     func updateUI() {
         let isPlaying = self.isPlaying
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [weak self] in
             StatusMenuController.shared.updatePlayPauseButton(isPlaying: isPlaying)
             StatusMenuController.shared.updateNowPlaying()
             StatusMenuController.shared.updateAlbumArt()
-            self.updateSystemNowPlaying()
+            self?.updateSystemNowPlaying()
         }
     }
     
@@ -397,11 +414,11 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
             return
         }
 
-        let task = URLSession.shared.dataTask(with: url) { data, _, _ in
+        let task = URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
             guard let data = data, let image = NSImage(data: data) else { return }
-            self.albumArtCache.setValue(image, forKey: urlString)
-            DispatchQueue.main.async {
-                self.updateUI()
+            self?.albumArtCache.setValue(image, forKey: urlString)
+            DispatchQueue.main.async { [weak self] in
+                self?.updateUI()
             }
         }
         task.resume()
@@ -415,28 +432,27 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
         switch (newState) {
         case .ready:
             updateNowPlaying()
-            fallthrough
+            stopPauseTimer()
+            updateUI()
         case .error:
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                self.setupPlayer()
-                self.play()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+                self?.setupPlayer()
+                self?.play()
             }
-            fallthrough
+            stopPauseTimer()
+            updateUI()
         case .playing, .bufferring, .running:
             // Cancel pause timer when playing
             stopPauseTimer()
             updateUI()
-            break
         case .paused:
             if !isSwitchingChannels {
                 startPauseTimer()
             }
             self.updateUI()
-            break
         case .stopped:
             stopPauseTimer()
             updateUI()
-            break
         default:
             break
         }
