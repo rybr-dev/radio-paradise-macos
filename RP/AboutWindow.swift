@@ -93,6 +93,8 @@ class AboutWindow: NSObject, NSWindowDelegate {
             .underlineStyle: NSUnderlineStyle.single.rawValue
         ]
 
+        let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+        attributedString.append(NSAttributedString(string: "Version \(appVersion). ", attributes: baseAttributes))
         attributedString.append(NSAttributedString(string: "Built with ❤️ by the Radio Paradise fans at ", attributes: baseAttributes))
 
         // Add rybr.dev link
