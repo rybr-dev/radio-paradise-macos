@@ -107,11 +107,12 @@ class StatusMenuController: NSObject, NSMenuDelegate {
         let channelMenuItem = NSMenuItem(title: "Channel", action: nil, keyEquivalent: "")
         let channelSubmenu = NSMenu()
 
-        for (index, channel) in CHANNEL_DATA.enumerated() {
+        let currentChannelID = getCurrentChannelID()
+        for channel in CHANNEL_DATA {
             let channelItem = NSMenuItem(title: channel.title, action: #selector(selectChannel(_:)), keyEquivalent: "")
             channelItem.target = self
-            channelItem.tag = index
-            channelItem.state = (index == getCurrentChannelIndex()) ? .on : .off
+            channelItem.tag = channel.channelID
+            channelItem.state = (channel.channelID == currentChannelID) ? .on : .off
             channelSubmenu.addItem(channelItem)
         }
 
@@ -250,10 +251,10 @@ class StatusMenuController: NSObject, NSMenuDelegate {
     }
 
     @objc private func selectChannel(_ sender: NSMenuItem) {
-        let selectedIndex = sender.tag
+        let selectedChannelID = sender.tag
 
         // Update the selected channel
-        setCurrentChannel(index: selectedIndex)
+        setCurrentChannel(channelID: selectedChannelID)
 
         // Update the menu checkmarks
         updateChannelMenuStates()
@@ -265,10 +266,10 @@ class StatusMenuController: NSObject, NSMenuDelegate {
         RadioPlayer.shared.switchChannel()
 
         // Show notification
-        let channel = CHANNEL_DATA[selectedIndex]
+        let selectedChannel = channel(forID: selectedChannelID) ?? getCurrentChannel()
         NotificationService.shared.showNotification(
             title: "Channel Changed",
-            body: "Now playing \(channel.title)"
+            body: "Now playing \(selectedChannel.title)"
         )
     }
 
@@ -278,9 +279,9 @@ class StatusMenuController: NSObject, NSMenuDelegate {
         // Find the channel submenu
         for item in menu.items {
             if item.title == "Channel", let submenu = item.submenu {
-                let currentIndex = getCurrentChannelIndex()
-                for (index, subItem) in submenu.items.enumerated() {
-                    subItem.state = (index == currentIndex) ? .on : .off
+                let currentID = getCurrentChannelID()
+                for subItem in submenu.items {
+                    subItem.state = (subItem.tag == currentID) ? .on : .off
                 }
                 break
             }
