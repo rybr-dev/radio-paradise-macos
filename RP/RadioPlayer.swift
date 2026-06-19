@@ -38,8 +38,7 @@ class RadioPlayer: NSObject, AudioPlayerDelegate {
                 }
                 return (songInfo, coverArtImage)
             }
-            let currentChannelIndex = getCurrentChannelIndex()
-            let channelName = CHANNEL_DATA[currentChannelIndex].title
+            let channelName = getCurrentChannel().title
             return (SongInfo(artist: "Radio Paradise", title: channelName), defaultImage)
         }
     }
